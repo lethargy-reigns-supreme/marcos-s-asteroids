@@ -128,7 +128,7 @@ class CookieComet:
         self.gravity += 0.15
 
         help_font = pygame.font.Font('graphics/other/ARCADE_N.TTF', 20)
-        help_text = help_font.render('Accelerate with [W], Rotate with [A], and [D], Shoot with [Space]', False, self.W)
+        help_text = help_font.render('Accelerate with [W], Rotate with [A], and [D], Shoot with [Space]', False, (255, 255, 255))
         help_rect = help_text.get_rect(center=(self.W/2, self.H - 60))
 
         self.screen.blit(help_text, help_rect)

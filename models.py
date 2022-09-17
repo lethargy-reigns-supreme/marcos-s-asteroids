@@ -1,13 +1,14 @@
 import pygame
 from utils import *
 from random import randint
+from math import atan2, cos, sin
 
 UP = pygame.math.Vector2(0, 1)
 
 
 class GameObject:
     def __init__(self, position, sprite, velocity):
-        self.position = position
+        self.position = pygame.math.Vector2(position)
         self.sprite = sprite
         self.mask = pygame.mask.from_surface(sprite)
         self.radius = self.sprite.get_width() / 2
@@ -25,13 +26,13 @@ class GameObject:
         self.position = wrap_position(self.position + self.velocity, surface)
 
     def collides_with(self, other_obj):
-        offset = (other_obj.position.x - self.position.x, other_obj.position.y - self.position.y)
+        offset = (other_obj.position[0] - self.position[0], other_obj.position[-1] - self.position[-1])
         return self.mask.overlap(other_obj.mask, offset)
 
 
 class Spaceship(GameObject):
     ACCELERATION = 0.25
-    MANEUVERABILITY = 3
+    MANEUVERABILITY = 5
     BULLET_VEL = 7
 
     def __init__(self, position, create_bullet_callback):
@@ -107,8 +108,42 @@ class Asteroid(GameObject):
 
 
 class Bullet(GameObject):
+    MANEUVERABILITY = 10
+
     def __init__(self, position, velocity):
         super().__init__(position, load_sprite('player', 'choco-bullet', 'png'), velocity)
 
     def move(self, surface):
         self.position = self.position + self.velocity
+
+    def draw(self, surface):
+        rotated_sprite = pygame.transform.rotate(self.sprite, self.MANEUVERABILITY)
+        blit_position = self.position - pygame.math.Vector2(self.radius)
+
+        surface.blit(rotated_sprite, blit_position)
+
+
+class UFO(GameObject):
+    BULLET_VEL = 4
+
+    def __init__(self, position, velocity, create_bullet_callback):
+        super().__init__(position, load_sprite('player', 'spaceship-cookie', 'png'), velocity)
+
+        self.shoot_direction = pygame.math.Vector2(UP)
+
+        self.create_bullet_callback = create_bullet_callback
+
+    def find_dir(self, spaceship):
+        radians = atan2(spaceship.position.y - self.position.y, spaceship.position.x - self.position.x)
+        self.shoot_direction.x = cos(radians) * self.BULLET_VEL
+        self.shoot_direction.y = sin(radians) * self.BULLET_VEL
+
+    def shoot(self, spaceship):
+        self.find_dir(spaceship)
+        bullet_vel = self.shoot_direction + self.velocity
+        bullet = Bullet(pygame.math.Vector2(self.position), bullet_vel)
+        self.create_bullet_callback(bullet)
+
+    def collides_with(self, other_obj):
+        offset = (other_obj.position[0] - self.position.x, other_obj.position[-1] - self.position.y)
+        return self.mask.overlap(other_obj.mask, offset)

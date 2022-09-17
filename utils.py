@@ -22,10 +22,7 @@ def wrap_position(position, surface):
 
 
 def get_random_position(surface):
-    return Vector2(
-        random.randrange(surface.get_width()),
-        random.randrange(surface.get_height())
-    )
+    return Vector2(random.randrange(surface.get_width()), 0)
 
 
 def get_random_vel(min_vel, max_vel):
